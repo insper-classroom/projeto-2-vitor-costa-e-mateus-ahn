@@ -105,9 +105,19 @@ def test_obter_imovel_ok(mock_conectar_banco, client):
         'cep': '85184',
         'tipo': 'casa em condominio',
         'valor': 488423.52,
-        'data_aquisicao': '2017-07-29'
+        'data_aquisicao': '2017-07-29',
+        '_links': {
+            'self': {'href': '/imoveis/1', 'method': 'GET'},
+            'update': {'href': '/imoveis/1', 'method': 'PUT'},
+            'delete': {'href': '/imoveis/1', 'method': 'DELETE'}
+        }
     }
     assert response.get_json() == expected_response
+
+    mock_cursor.execute.assert_called_once_with('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id = ?', (1,))
+    mock_cursor.fetchone.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
 
 @patch('api.conectar_banco')
 def test_obter_imovel_not_found(mock_conectar_banco, client):
@@ -123,3 +133,8 @@ def test_obter_imovel_not_found(mock_conectar_banco, client):
 
     assert response.status_code == 404
     assert response.get_json() == {'error': 'Imóvel não encontrado'}
+
+    mock_cursor.execute.assert_called_once_with('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id = ?', (1,))
+    mock_cursor.fetchone.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
