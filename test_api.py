@@ -122,4 +122,4 @@ def test_obter_imovel_not_found(mock_conectar_banco, client):
     response = client.get('/imoveis/1')
 
     assert response.status_code == 404
-    assert response.get_json() == {'erro': 'Imóvel não encontrado'}
+    assert response.get_json() == {'error': 'Imóvel não encontrado'}

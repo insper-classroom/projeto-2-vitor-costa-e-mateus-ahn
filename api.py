@@ -50,3 +50,30 @@ def listar_imoveis():
     }
 
     return jsonify(response), 200
+
+@app.route('/imoveis/<int:id>', methods=['GET'])
+def obter_imovel(id):
+    conn = conectar_banco()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM imoveis WHERE id = ?', (id,))
+    row = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+
+    if row:
+        imovel = {
+            'id': row[0],
+            'logradouro': row[1],
+            'tipo_logradouro': row[2],
+            'bairro': row[3],
+            'cidade': row[4],
+            'cep': row[5],
+            'tipo': row[6],
+            'valor': row[7],
+            'data_aquisicao': row[8]
+        }
+        return jsonify(imovel), 200
+    else:
+        return jsonify({'error': 'Imóvel não encontrado'}), 404
