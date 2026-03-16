@@ -69,7 +69,7 @@ def test_listar_imoveis_vazio(mock_conectar_banco, client):
     # Verifica estrutura HATEOAS
     assert '_embedded' in response_data
     assert '_links' in response_data
-    
+
     assert response_data['_embedded']['imoveis'] == []
 
     # Verifica links da coleção
@@ -82,3 +82,44 @@ def test_listar_imoveis_vazio(mock_conectar_banco, client):
     mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
+
+@patch('api.conectar_banco')
+def test_obter_imovel_ok(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.fetchone.return_value = (1, 'Nicole Common', 'Travessa', 'Lake Danielle', 'Judymouth', '85184', 'casa em condominio', 488423.52, '2017-07-29')
+    
+    response = client.get('/imoveis/1')
+
+    assert response.status_code == 200
+    expected_response = {
+        'id': 1,
+        'logradouro': 'Nicole Common',
+        'tipo_logradouro': 'Travessa',
+        'bairro': 'Lake Danielle',
+        'cidade': 'Judymouth',
+        'cep': '85184',
+        'tipo': 'casa em condominio',
+        'valor': 488423.52,
+        'data_aquisicao': '2017-07-29'
+    }
+    assert response.get_json() == expected_response
+
+@patch('api.conectar_banco')
+def test_obter_imovel_not_found(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.fetchone.return_value = None
+    
+    response = client.get('/imoveis/1')
+
+    assert response.status_code == 404
+    assert response.get_json() == {'erro': 'Imóvel não encontrado'}
