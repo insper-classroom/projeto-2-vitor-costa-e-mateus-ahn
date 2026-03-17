@@ -309,3 +309,46 @@ def test_deletar_imovel_not_found(mock_conectar_banco, client):
     mock_conn.commit.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
+
+
+@patch('api.conectar_banco')
+def test_listar_imoveis_tipo(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.fetchall.return_value = [
+        (1, 'Nicole Common', 'Travessa', 'Lake Danielle', 'Judymouth', '85184', 'casa em condominio', 488423.52, '2017-07-29'),
+        (2, 'Price Prairie', 'Travessa', 'Colonton', 'North Garyville', '93354', 'casa em condominio', 260069.89, '2021-11-30'),
+        (3, 'Taylor Ranch', 'Avenida', 'West Jennashire', 'Katherinefurt', '51116', 'apartamento', 815969.92, '2020-04-24')
+    ]
+
+    response = client.get('/imoveis/<str:tipo>')
+
+    assert response.status_code == 200
+    response_data = response.get_json()
+    
+    # Verifica estrutura HATEOAS
+    assert '_embedded' in response_data
+    assert '_links' in response_data
+    assert 'imoveis/casa em condominio' in response_data['_embedded']
+    
+    imoveis = response_data['_embedded']['imoveis']
+    expected_response = [
+        {'tipo': 'casa em condominio', 'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'valor': 488423.52, 'data_aquisicao': '2017-07-29', '_links': {'self': {'href': '/imoveis/1', 'method': 'GET'}, 'update': {'href': '/imoveis/1', 'method': 'PUT'}, 'delete': {'href': '/imoveis/1', 'method': 'DELETE'}}},
+        {'tipo': 'casa em condominio', 'id': 2, 'logradouro': 'Price Prairie', 'tipo_logradouro': 'Travessa', 'bairro': 'Colonton', 'cidade': 'North Garyville', 'cep': '93354', 'valor': 260069.89, 'data_aquisicao': '2021-11-30', '_links': {'self': {'href': '/imoveis/2', 'method': 'GET'}, 'update': {'href': '/imoveis/2', 'method': 'PUT'}, 'delete': {'href': '/imoveis/2', 'method': 'DELETE'}}},
+    ]
+    assert imoveis == expected_response
+    
+    # Verifica links da coleção
+    assert response_data['_links']['self']['href'] == '/imoveis/casa em condominio'
+    assert response_data['_links']['self']['method'] == 'GET'
+    assert response_data['_links']['create']['method'] == 'POST'
+    assert response_data['_links']['create']['href'] == '/imoveis/casa em condominio'
+
+    mock_cursor.execute.assert_called_once_with('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis')
+    mock_cursor.fetchall.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
