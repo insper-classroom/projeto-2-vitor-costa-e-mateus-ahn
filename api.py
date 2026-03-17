@@ -100,3 +100,30 @@ def criar_imovel():
         '_links': criar_links_imovel(new_id)
     }
     return jsonify(response), 201
+
+
+@app.route('/imoveis/<int:id>', methods=['PUT'])
+def atualizar_imovel(id):
+    data = request.get_json()
+    required_fields = ['logradouro', 'tipo_logradouro', 'bairro', 'cidade', 'cep', 'tipo', 'valor', 'data_aquisicao']
+    
+    if not all(field in data for field in required_fields):
+        return jsonify({'error': 'Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao'}), 400
+
+    conn = conectar_banco()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        'UPDATE imoveis SET logradouro = ?, tipo_logradouro = ?, bairro = ?, cidade = ?, cep = ?, tipo = ?, valor = ?, data_aquisicao = ? WHERE id = ?',
+        (data["logradouro"], data["tipo_logradouro"], data["bairro"], data["cidade"], data["cep"], data["tipo"], data["valor"], data["data_aquisicao"], id)
+    )
+    conn.commit()
+    rows = cursor.rowcount
+
+    cursor.close()
+    conn.close()
+
+    if rows == 0:
+        return jsonify({'error': 'Imóvel não encontrado'}), 404
+
+    return jsonify({'message': 'Imóvel atualizado com sucesso'}), 200
