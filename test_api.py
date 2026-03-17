@@ -194,3 +194,45 @@ def test_criar_imovel_erro_validacao(mock_conectar_banco, client):
     assert response.get_json() == {'error': 'Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao'}
 
     mock_conectar_banco.assert_not_called()
+
+
+@patch('api.conectar_banco')
+def test_atualizar_imovel_ok(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.rowcount = 1
+
+    payload = {'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'tipo': 'casa em condominio', 'valor': 488423.52, 'data_aquisicao': '2017-07-29'}
+    response = client.put('/imoveis/1', json=payload)
+
+    assert response.status_code == 200
+    assert response.get_json() == {'message': 'Imóvel atualizado com sucesso'}
+
+
+@patch('api.conectar_banco')
+def test_atualizar_imovel_not_found(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.rowcount = 0
+
+    payload = {'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'tipo': 'casa em condominio', 'valor': 488423.52, 'data_aquisicao': '2017-07-29'}
+    response = client.put('/imoveis/1', json=payload)
+
+    assert response.status_code == 404
+    assert response.get_json() == {'error': 'Imóvel não encontrado'}
+
+
+@patch('api.conectar_banco')
+def test_atualizar_imovel_erro_validacao(mock_conectar_banco, client):
+    response = client.put('/imoveis/1', json={})
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao'}

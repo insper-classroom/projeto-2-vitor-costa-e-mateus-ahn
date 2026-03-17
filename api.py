@@ -73,7 +73,7 @@ def obter_imovel(id):
     else:
         return jsonify({'error': 'Imóvel não encontrado'}), 404
     
-    
+
 @app.route('/imoveis', methods=['POST'])
 def criar_imovel():
     data = request.get_json()
