@@ -394,3 +394,44 @@ def test_listar_imoveis_tipo_vazio(mock_conectar_banco, client):
     mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
+
+
+@patch('api.conectar_banco')
+def test_listar_imoveis_cidade(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.fetchall.return_value = [
+        (1, 'Preston Terrace', 'Rua', 'North Lindseyview', 'Lake Michael', '99549', 'terreno', 946804.25, '2023-12-13'),
+        (2, 'Lori Summit', 'Travessa', 'Kristaside', 'Lake Michael', '24473', 'casa', 498926.13, '2019-02-27')
+    ]
+
+    response = client.get('/imoveis/cidade/Lake Michael')
+
+    assert response.status_code == 200
+    response_data = response.get_json()
+    
+    expected_response = [
+        {'id': 1, 'logradouro': 'Preston Terrace', 'tipo_logradouro': 'Rua', 'bairro': 'North Lindseyview', 'cidade': 'Lake Michael', 'cep': '99549', 'tipo': 'terreno', 'valor': 946804.25, 'data_aquisicao': '2023-12-13'},
+        {'id': 2, 'logradouro': 'Lori Summit', 'tipo_logradouro': 'Travessa', 'bairro': 'Kristaside', 'cidade': 'Lake Michael', 'cep': '24473', 'tipo': 'casa', 'valor': 498926.13, 'data_aquisicao': '2019-02-27'}
+    ]
+    assert response_data == expected_response
+
+
+@patch('api.conectar_banco')
+def test_listar_imoveis_cidade_vazio(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.fetchall.return_value = []
+
+    response = client.get('/imoveis/cidade/Lake Michael')
+
+    assert response.status_code == 200
+    assert response.get_json() == []
