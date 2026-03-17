@@ -131,3 +131,22 @@ def atualizar_imovel(id):
         '_links': criar_links_imovel(id)
     }
     return jsonify(response), 200
+
+
+@app.route('/imoveis/<int:id>', methods=['DELETE'])
+def deletar_imovel(id):
+    conn = conectar_banco()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM imoveis WHERE id = ?", (id,))
+
+    conn.commit()
+    rows = cursor.rowcount
+
+    cursor.close()
+    conn.close()
+
+    if rows == 0:
+        return jsonify({'error': 'Imóvel não encontrado'}), 404
+
+    return jsonify({'message': 'Imóvel excluído com sucesso'}), 200
