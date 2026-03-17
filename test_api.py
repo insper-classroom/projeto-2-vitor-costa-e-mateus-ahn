@@ -2,11 +2,13 @@ import pytest
 from unittest.mock import patch, MagicMock
 from api import app, conectar_banco
 
+
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
     with app.test_client() as client:
         yield client
+
 
 @patch('api.conectar_banco')
 def test_listar_imoveis(mock_conectar_banco, client):
@@ -51,6 +53,7 @@ def test_listar_imoveis(mock_conectar_banco, client):
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
 
+
 @patch('api.conectar_banco')
 def test_listar_imoveis_vazio(mock_conectar_banco, client):
     mock_conn = MagicMock()
@@ -82,6 +85,7 @@ def test_listar_imoveis_vazio(mock_conectar_banco, client):
     mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
+
 
 @patch('api.conectar_banco')
 def test_obter_imovel_ok(mock_conectar_banco, client):
@@ -119,6 +123,7 @@ def test_obter_imovel_ok(mock_conectar_banco, client):
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
 
+
 @patch('api.conectar_banco')
 def test_obter_imovel_not_found(mock_conectar_banco, client):
     mock_conn = MagicMock()
@@ -138,3 +143,36 @@ def test_obter_imovel_not_found(mock_conectar_banco, client):
     mock_cursor.fetchone.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
+
+
+@patch('api.conectar_banco')
+def test_criar_imovel_ok(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.lastrowid = 1
+
+    payload = {
+        'logradouro': 'Nicole Common',
+        'tipo_logradouro': 'Travessa',
+        'bairro': 'Lake Danielle',
+        'cidade': 'Judymouth',
+        'cep': '85184',
+        'tipo': 'casa em condominio',
+        'valor': 488423.52,
+        'data_aquisicao': '2017-07-29',
+    }
+    response = client.post('/imoveis', json=payload)
+
+    assert response.status_code == 201
+    assert response.get_json() == {'id': 1}
+
+@patch('api.conectar_banco')
+def test_criar_imovel_erro_validacao(mock_conectar_banco, client):
+    response = client.post('/imoveis', json={})
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao'}
