@@ -1,12 +1,31 @@
-import sqlite3
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+import os
+import mysql.connector
+from mysql.connector import Error
+
+load_dotenv('.cred')
+config = {
+    'host': os.getenv('DB_HOST'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME'),
+    'port': int(os.getenv('DB_PORT')),
+    'ssl_ca': os.getenv('SSL_CA_PATH')
+}
 
 app = Flask(__name__)
-DB_NAME = 'banco.db'
 
 
 def conectar_banco():
-    return sqlite3.connect(DB_NAME)
+    print(config)
+    try:
+        conn = mysql.connector.connect(**config)
+        if conn.is_connected():
+            return conn
+    except Error as err:
+        print(f'Erro: {err}')
+        return None
 
 
 def criar_links_imovel(imovel_id):
@@ -61,7 +80,7 @@ def obter_imovel(id):
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id = ?', (id,))
+    cursor.execute('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE id = %s', (id,))
     row = cursor.fetchone()
     
     cursor.close()
@@ -86,7 +105,7 @@ def criar_imovel():
     cursor = conn.cursor()
 
     cursor.execute(
-        'INSERT INTO imoveis (logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO imoveis (logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
         (data['logradouro'], data['tipo_logradouro'], data['bairro'], data['cidade'], data['cep'], data['tipo'], data['valor'], data['data_aquisicao'])
     )
     conn.commit()
@@ -114,7 +133,7 @@ def atualizar_imovel(id):
     cursor = conn.cursor()
 
     cursor.execute(
-        'UPDATE imoveis SET logradouro = ?, tipo_logradouro = ?, bairro = ?, cidade = ?, cep = ?, tipo = ?, valor = ?, data_aquisicao = ? WHERE id = ?',
+        'UPDATE imoveis SET logradouro = %s, tipo_logradouro = %s, bairro = %s, cidade = %s, cep = %s, tipo = %s, valor = %s, data_aquisicao = %s WHERE id = %s',
         (data["logradouro"], data["tipo_logradouro"], data["bairro"], data["cidade"], data["cep"], data["tipo"], data["valor"], data["data_aquisicao"], id)
     )
     conn.commit()
@@ -138,7 +157,7 @@ def deletar_imovel(id):
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM imoveis WHERE id = ?", (id,))
+    cursor.execute("DELETE FROM imoveis WHERE id = %s", (id,))
 
     conn.commit()
     rows = cursor.rowcount
@@ -164,7 +183,7 @@ def listar_imoveis_por_tipo(tipo):
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE tipo = ?', (tipo,))
+    cursor.execute('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE tipo = %s', (tipo,))
     rows = cursor.fetchall()
     
     cursor.close()
@@ -189,7 +208,7 @@ def listar_imoveis_por_cidade(cidade):
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE cidade = ?', (cidade,))
+    cursor.execute('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE cidade = %s', (cidade,))
     rows = cursor.fetchall()
     
     cursor.close()
@@ -207,3 +226,7 @@ def listar_imoveis_por_cidade(cidade):
     }
 
     return jsonify(response), 200
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
