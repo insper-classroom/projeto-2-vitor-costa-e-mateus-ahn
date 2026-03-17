@@ -168,7 +168,23 @@ def test_criar_imovel_ok(mock_conectar_banco, client):
     response = client.post('/imoveis', json=payload)
 
     assert response.status_code == 201
-    assert response.get_json() == {'id': 1}
+    assert response.get_json() == {
+        'id': 1,
+        '_links': {
+            'self': {'href': '/imoveis/1', 'method': 'GET'},
+            'update': {'href': '/imoveis/1', 'method': 'PUT'},
+            'delete': {'href': '/imoveis/1', 'method': 'DELETE'}
+        }
+    }
+
+    mock_cursor.execute.assert_called_once_with(
+        'INSERT INTO imoveis (logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        (payload['logradouro'], payload['tipo_logradouro'], payload['bairro'], payload['cidade'], payload['cep'], payload['tipo'], payload['valor'], payload['data_aquisicao'])
+    )
+    mock_conn.commit.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
 
 @patch('api.conectar_banco')
 def test_criar_imovel_erro_validacao(mock_conectar_banco, client):
@@ -176,3 +192,5 @@ def test_criar_imovel_erro_validacao(mock_conectar_banco, client):
 
     assert response.status_code == 400
     assert response.get_json() == {'error': 'Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao'}
+
+    mock_conectar_banco.assert_not_called()

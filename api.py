@@ -4,8 +4,10 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 DB_NAME = 'banco.db'
 
+
 def conectar_banco():
     return sqlite3.connect(DB_NAME)
+
 
 def criar_links_imovel(imovel_id):
     return {
@@ -13,6 +15,7 @@ def criar_links_imovel(imovel_id):
         'update': {'href': f'/imoveis/{imovel_id}', 'method': 'PUT'},
         'delete': {'href': f'/imoveis/{imovel_id}', 'method': 'DELETE'}
     }
+
 
 def criar_linha_imovel(row):
     return {
@@ -27,6 +30,7 @@ def criar_linha_imovel(row):
         'data_aquisicao': row[8],
         '_links': criar_links_imovel(row[0])
     }
+
 
 @app.route('/imoveis', methods=['GET'])
 def listar_imoveis():
@@ -51,6 +55,7 @@ def listar_imoveis():
 
     return jsonify(response), 200
 
+
 @app.route('/imoveis/<int:id>', methods=['GET'])
 def obter_imovel(id):
     conn = conectar_banco()
@@ -67,6 +72,7 @@ def obter_imovel(id):
         return jsonify(imovel), 200
     else:
         return jsonify({'error': 'Imóvel não encontrado'}), 404
+    
     
 @app.route('/imoveis', methods=['POST'])
 def criar_imovel():
@@ -89,4 +95,8 @@ def criar_imovel():
     cursor.close()
     conn.close()
 
-    return jsonify({'id': new_id}), 201
+    response = {
+        'id': new_id,
+        '_links': criar_links_imovel(new_id)
+    }
+    return jsonify(response), 201
