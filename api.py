@@ -157,3 +157,29 @@ def deletar_imovel(id):
         }
     }
     return jsonify(response), 200
+
+
+@app.route('/imoveis/tipo/<string:tipo>', methods=['GET'])
+def listar_imoveis_por_tipo(tipo):
+    conn = conectar_banco()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = ?', (tipo,))
+    rows = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+
+    data = [{
+        'id': row[0],
+        'logradouro': row[1],
+        'tipo_logradouro': row[2],
+        'bairro': row[3],
+        'cidade': row[4],
+        'cep': row[5],
+        'tipo': row[6],
+        'valor': row[7],
+        'data_aquisicao': row[8]
+    } for row in rows]
+
+    return jsonify(data), 200
