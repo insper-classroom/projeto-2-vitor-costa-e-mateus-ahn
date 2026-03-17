@@ -276,7 +276,21 @@ def test_deletar_imovel_ok(mock_conectar_banco, client):
     response = client.delete('/imoveis/1')
 
     assert response.status_code == 200
-    assert response.get_json() == {'message': 'Imóvel excluído com sucesso'}
+    assert response.get_json() == {
+        'message': 'Imóvel excluído com sucesso',
+        '_links': {
+            'create': {'href': '/imoveis', 'method': 'POST'},
+            'list': {'href': '/imoveis', 'method': 'GET'}
+        }
+    }
+
+    mock_cursor.execute.assert_called_once_with(
+        'DELETE FROM imoveis WHERE id = ?',
+        (1,),
+    )
+    mock_conn.commit.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
 
 
 @patch('api.conectar_banco')
@@ -293,3 +307,11 @@ def test_deletar_imovel_not_found(mock_conectar_banco, client):
 
     assert response.status_code == 404
     assert response.get_json() == {'error': 'Imóvel não encontrado'}
+
+    mock_cursor.execute.assert_called_once_with(
+        'DELETE FROM imoveis WHERE id = ?',
+        (1,),
+    )
+    mock_conn.commit.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()

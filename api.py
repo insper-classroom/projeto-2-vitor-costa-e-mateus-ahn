@@ -149,4 +149,11 @@ def deletar_imovel(id):
     if rows == 0:
         return jsonify({'error': 'Imóvel não encontrado'}), 404
 
-    return jsonify({'message': 'Imóvel excluído com sucesso'}), 200
+    response = {
+        'message': 'Imóvel excluído com sucesso',
+        '_links': {
+            'create': {'href': '/imoveis', 'method': 'POST'},
+            'list': {'href': '/imoveis', 'method': 'GET'}
+        }
+    }
+    return jsonify(response), 200
