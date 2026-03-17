@@ -18,7 +18,6 @@ app = Flask(__name__)
 
 
 def conectar_banco():
-    print(config)
     try:
         conn = mysql.connector.connect(**config)
         if conn.is_connected():
