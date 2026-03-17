@@ -157,7 +157,7 @@ def listar_imoveis_tipo():
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis')
+    cursor.execute('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = s%')
     rows = cursor.fetchall()
     
     cursor.close()

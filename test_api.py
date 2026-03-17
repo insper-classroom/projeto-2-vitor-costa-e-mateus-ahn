@@ -325,7 +325,7 @@ def test_listar_imoveis_tipo(mock_conectar_banco, client):
         (3, 'Taylor Ranch', 'Avenida', 'West Jennashire', 'Katherinefurt', '51116', 'apartamento', 815969.92, '2020-04-24')
     ]
 
-    response = client.get('/imoveis/<str:tipo>')
+    response = client.get('/imoveis/casa em condominio')
 
     assert response.status_code == 200
     response_data = response.get_json()
@@ -335,7 +335,7 @@ def test_listar_imoveis_tipo(mock_conectar_banco, client):
     assert '_links' in response_data
     assert 'imoveis/casa em condominio' in response_data['_embedded']
     
-    imoveis = response_data['_embedded']['imoveis']
+    imoveis = response_data['_embedded']['imoveis/casa em condominio']
     expected_response = [
         {'tipo': 'casa em condominio', 'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'valor': 488423.52, 'data_aquisicao': '2017-07-29', '_links': {'self': {'href': '/imoveis/1', 'method': 'GET'}, 'update': {'href': '/imoveis/1', 'method': 'PUT'}, 'delete': {'href': '/imoveis/1', 'method': 'DELETE'}}},
         {'tipo': 'casa em condominio', 'id': 2, 'logradouro': 'Price Prairie', 'tipo_logradouro': 'Travessa', 'bairro': 'Colonton', 'cidade': 'North Garyville', 'cep': '93354', 'valor': 260069.89, 'data_aquisicao': '2021-11-30', '_links': {'self': {'href': '/imoveis/2', 'method': 'GET'}, 'update': {'href': '/imoveis/2', 'method': 'PUT'}, 'delete': {'href': '/imoveis/2', 'method': 'DELETE'}}},
@@ -343,12 +343,12 @@ def test_listar_imoveis_tipo(mock_conectar_banco, client):
     assert imoveis == expected_response
     
     # Verifica links da coleção
-    assert response_data['_links']['self']['href'] == '/imoveis/casa em condominio'
+    assert response_data['_links']['self']['href'] == '/imoveis'
     assert response_data['_links']['self']['method'] == 'GET'
     assert response_data['_links']['create']['method'] == 'POST'
-    assert response_data['_links']['create']['href'] == '/imoveis/casa em condominio'
+    assert response_data['_links']['create']['href'] == '/imoveis'
 
-    mock_cursor.execute.assert_called_once_with('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis')
+    mock_cursor.execute.assert_called_once_with('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = %s', ('casa em condominio',))
     mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
