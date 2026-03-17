@@ -148,11 +148,11 @@ def deletar_imovel(id):
     conn.close()
 
     if cursor.rowcount == 0:
-        return {'erro' : 'Contato não encontrado'}, 404
+        return {'erro' : 'Imovel não encontrado'}, 404
 
-    return {'mensagem' : 'Contato excluído com sucesso'}, 200
+    return {'mensagem' : 'Imovel excluído com sucesso'}, 200
 
-@app.route('/imoveis/<string:tipo>', methods=['GET'])
+@app.route('/imoveis/tipo/<string:tipo>', methods=['GET'])
 def listar_imoveis_tipo(tipo):
     conn = conectar_banco()
     cursor = conn.cursor()
@@ -168,19 +168,19 @@ def listar_imoveis_tipo(tipo):
     response = {
         '_embedded': {'imoveis': data},
         '_links': {
-            'self': {'href': '/imoveis{tipo}', 'method': 'GET'},
-            'create': {'href': '/imoveis{tipo}', 'method': 'POST'}
+            'self': {'href': '/imoveis/tipo/{tipo}', 'method': 'GET'},
+            'create': {'href': '/imoveis/tipo/{tipo}', 'method': 'POST'}
         }
     }
 
     return jsonify(response), 200
 
-@app.route('/imoveis/<str:cidade>', methods=['GET'])
-def listar_imoveis_cidade():
+@app.route('/imoveis/cidade/<string:cidade>', methods=['GET'])
+def listar_imoveis_cidade(cidade):
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT cidade, id, logradouro, tipo_logradouro, bairro, tipo, cep, valor, data_aquisicao FROM imoveis WHERE cidade = ?')
+    cursor.execute('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE cidade = ?', (cidade,))
     rows = cursor.fetchall()
     
     cursor.close()
@@ -191,8 +191,8 @@ def listar_imoveis_cidade():
     response = {
         '_embedded': {'imoveis': data},
         '_links': {
-            'self': {'href': '/imoveis', 'method': 'GET'},
-            'create': {'href': '/imoveis', 'method': 'POST'}
+            'self': {'href': '/imoveis/cidade/{cidade}', 'method': 'GET'},
+            'create': {'href': '/imoveis/cidade/{cidade}', 'method': 'POST'}
         }
     }
 

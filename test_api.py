@@ -325,7 +325,7 @@ def test_listar_imoveis_tipo(mock_conectar_banco, client):
         (3, 'Taylor Ranch', 'Avenida', 'West Jennashire', 'Katherinefurt', '51116', 'apartamento', 815969.92, '2020-04-24')
     ]
 
-    response = client.get('/imoveis/casa em condominio')
+    response = client.get('/imoveis/tipo/casa em condominio')
 
     assert response.status_code == 200
     response_data = response.get_json()
@@ -333,22 +333,66 @@ def test_listar_imoveis_tipo(mock_conectar_banco, client):
     # Verifica estrutura HATEOAS
     assert '_embedded' in response_data
     assert '_links' in response_data
-    assert 'imoveis/casa em condominio' in response_data['_embedded']
+    assert 'imoveis' in response_data['_embedded']
     
-    imoveis = response_data['_embedded']['imoveis/casa em condominio']
+    imoveis = response_data['_embedded']['imoveis']
     expected_response = [
         {'tipo': 'casa em condominio', 'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'valor': 488423.52, 'data_aquisicao': '2017-07-29', '_links': {'self': {'href': '/imoveis/1', 'method': 'GET'}, 'update': {'href': '/imoveis/1', 'method': 'PUT'}, 'delete': {'href': '/imoveis/1', 'method': 'DELETE'}}},
         {'tipo': 'casa em condominio', 'id': 2, 'logradouro': 'Price Prairie', 'tipo_logradouro': 'Travessa', 'bairro': 'Colonton', 'cidade': 'North Garyville', 'cep': '93354', 'valor': 260069.89, 'data_aquisicao': '2021-11-30', '_links': {'self': {'href': '/imoveis/2', 'method': 'GET'}, 'update': {'href': '/imoveis/2', 'method': 'PUT'}, 'delete': {'href': '/imoveis/2', 'method': 'DELETE'}}},
+        {'tipo': 'apartamento', 'id': 3, 'logradouro': 'Taylor Ranch', 'tipo_logradouro': 'Avenida', 'bairro': 'West Jennashire', 'cidade': 'Katherinefurt', 'cep': '51116', 'valor': 815969.92, 'data_aquisicao': '2020-04-24', '_links': {'self': {'href': '/imoveis/3', 'method': 'GET'}, 'update': {'href': '/imoveis/3', 'method': 'PUT'}, 'delete': {'href': '/imoveis/3', 'method': 'DELETE'}}}
     ]
     assert imoveis == expected_response
     
     # Verifica links da coleção
-    assert response_data['_links']['self']['href'] == '/imoveis'
+    assert response_data['_links']['self']['href'] == '/imoveis/tipo/{tipo}'
     assert response_data['_links']['self']['method'] == 'GET'
     assert response_data['_links']['create']['method'] == 'POST'
-    assert response_data['_links']['create']['href'] == '/imoveis'
+    assert response_data['_links']['create']['href'] == '/imoveis/tipo/{tipo}'
 
     mock_cursor.execute.assert_called_once_with('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = ?', ('casa em condominio',))
+    mock_cursor.fetchall.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
+@patch('api.conectar_banco')
+def test_listar_imoveis_cidade(mock_conectar_banco, client):
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conectar_banco.return_value = mock_conn
+
+    mock_cursor.fetchall.return_value = [
+        (1, 'Nicole Common', 'Travessa', 'Lake Danielle', 'Judymouth', '85184', 'casa em condominio', 488423.52, '2017-07-29'),
+        (2, 'Price Prairie', 'Travessa', 'Colonton', 'North Garyville', '93354', 'casa em condominio', 260069.89, '2021-11-30'),
+        (3, 'Taylor Ranch', 'Avenida', 'West Jennashire', 'Katherinefurt', '51116', 'apartamento', 815969.92, '2020-04-24')
+    ]
+
+    response = client.get('/imoveis/cidade/Judymouth')
+
+    assert response.status_code == 200
+    response_data = response.get_json()
+    
+    # Verifica estrutura HATEOAS
+    assert '_embedded' in response_data
+    assert '_links' in response_data
+    assert 'imoveis' in response_data['_embedded']
+    
+    imoveis = response_data['_embedded']['imoveis']
+    expected_response = [
+        {'tipo': 'casa em condominio', 'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'valor': 488423.52, 'data_aquisicao': '2017-07-29', '_links': {'self': {'href': '/imoveis/1', 'method': 'GET'}, 'update': {'href': '/imoveis/1', 'method': 'PUT'}, 'delete': {'href': '/imoveis/1', 'method': 'DELETE'}}},
+        {'tipo': 'casa em condominio', 'id': 2, 'logradouro': 'Price Prairie', 'tipo_logradouro': 'Travessa', 'bairro': 'Colonton', 'cidade': 'North Garyville', 'cep': '93354', 'valor': 260069.89, 'data_aquisicao': '2021-11-30', '_links': {'self': {'href': '/imoveis/2', 'method': 'GET'}, 'update': {'href': '/imoveis/2', 'method': 'PUT'}, 'delete': {'href': '/imoveis/2', 'method': 'DELETE'}}},
+        {'tipo': 'apartamento', 'id': 3, 'logradouro': 'Taylor Ranch', 'tipo_logradouro': 'Avenida', 'bairro': 'West Jennashire', 'cidade': 'Katherinefurt', 'cep': '51116', 'valor': 815969.92, 'data_aquisicao': '2020-04-24', '_links': {'self': {'href': '/imoveis/3', 'method': 'GET'}, 'update': {'href': '/imoveis/3', 'method': 'PUT'}, 'delete': {'href': '/imoveis/3', 'method': 'DELETE'}}}
+    ]
+    assert imoveis == expected_response
+    
+    # Verifica links da coleção
+    assert response_data['_links']['self']['href'] == '/imoveis/cidade/{cidade}'
+    assert response_data['_links']['self']['method'] == 'GET'
+    assert response_data['_links']['create']['method'] == 'POST'
+    assert response_data['_links']['create']['href'] == '/imoveis/cidade/{cidade}'
+
+    mock_cursor.execute.assert_called_once_with('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE cidade = ?', ('Judymouth',))
     mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
