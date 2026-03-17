@@ -151,3 +151,49 @@ def deletar_imovel(id):
         return {'erro' : 'Contato não encontrado'}, 404
 
     return {'mensagem' : 'Contato excluído com sucesso'}, 200
+
+@app.route('/imoveis/<str:tipo>', methods=['GET'])
+def listar_imoveis_tipo():
+    conn = conectar_banco()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis')
+    rows = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+
+    data = [criar_linha_imovel(row) for row in rows]
+    
+    response = {
+        '_embedded': {'imoveis': data},
+        '_links': {
+            'self': {'href': '/imoveis', 'method': 'GET'},
+            'create': {'href': '/imoveis', 'method': 'POST'}
+        }
+    }
+
+    return jsonify(response), 200
+
+@app.route('/imoveis/<str:cidade>', methods=['GET'])
+def listar_imoveis_cidade():
+    conn = conectar_banco()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT cidade, id, logradouro, tipo_logradouro, bairro, tipo, cep, valor, data_aquisicao FROM imoveis')
+    rows = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+
+    data = [criar_linha_imovel(row) for row in rows]
+    
+    response = {
+        '_embedded': {'imoveis': data},
+        '_links': {
+            'self': {'href': '/imoveis', 'method': 'GET'},
+            'create': {'href': '/imoveis', 'method': 'POST'}
+        }
+    }
+
+    return jsonify(response), 200
