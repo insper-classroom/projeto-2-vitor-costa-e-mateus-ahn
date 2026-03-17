@@ -348,7 +348,7 @@ def test_listar_imoveis_tipo(mock_conectar_banco, client):
     assert response_data['_links']['create']['method'] == 'POST'
     assert response_data['_links']['create']['href'] == '/imoveis'
 
-    mock_cursor.execute.assert_called_once_with('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = %s', ('casa em condominio',))
+    mock_cursor.execute.assert_called_once_with('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = ?', ('casa em condominio',))
     mock_cursor.fetchall.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_conn.close.assert_called_once()
