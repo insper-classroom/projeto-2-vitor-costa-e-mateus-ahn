@@ -164,22 +164,21 @@ def listar_imoveis_por_tipo(tipo):
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = ?', (tipo,))
+    cursor.execute('SELECT id, logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao FROM imoveis WHERE tipo = ?', (tipo,))
     rows = cursor.fetchall()
     
     cursor.close()
     conn.close()
 
-    data = [{
-        'id': row[0],
-        'logradouro': row[1],
-        'tipo_logradouro': row[2],
-        'bairro': row[3],
-        'cidade': row[4],
-        'cep': row[5],
-        'tipo': row[6],
-        'valor': row[7],
-        'data_aquisicao': row[8]
-    } for row in rows]
+    data = [criar_linha_imovel(row) for row in rows]
+    
+    response = {
+        '_embedded': {'imoveis': data},
+        '_links': {
+            'self': {'href': f'/imoveis/tipo/{tipo}', 'method': 'GET'},
+            'list': {'href': '/imoveis', 'method': 'GET'},
+            'create': {'href': '/imoveis', 'method': 'POST'}
+        }
+    }
 
-    return jsonify(data), 200
+    return jsonify(response), 200
