@@ -152,12 +152,12 @@ def deletar_imovel(id):
 
     return {'mensagem' : 'Contato excluído com sucesso'}, 200
 
-@app.route('/imoveis/<str:tipo>', methods=['GET'])
-def listar_imoveis_tipo():
+@app.route('/imoveis/<string:tipo>', methods=['GET'])
+def listar_imoveis_tipo(tipo):
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = s%')
+    cursor.execute('SELECT tipo, id, logradouro, tipo_logradouro, bairro, cidade, cep, valor, data_aquisicao FROM imoveis WHERE tipo = %s', (tipo,))
     rows = cursor.fetchall()
     
     cursor.close()
@@ -168,8 +168,8 @@ def listar_imoveis_tipo():
     response = {
         '_embedded': {'imoveis': data},
         '_links': {
-            'self': {'href': '/imoveis', 'method': 'GET'},
-            'create': {'href': '/imoveis', 'method': 'POST'}
+            'self': {'href': '/imoveis{tipo}', 'method': 'GET'},
+            'create': {'href': '/imoveis{tipo}', 'method': 'POST'}
         }
     }
 
@@ -180,7 +180,7 @@ def listar_imoveis_cidade():
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT cidade, id, logradouro, tipo_logradouro, bairro, tipo, cep, valor, data_aquisicao FROM imoveis')
+    cursor.execute('SELECT cidade, id, logradouro, tipo_logradouro, bairro, tipo, cep, valor, data_aquisicao FROM imoveis WHERE cidade = s%')
     rows = cursor.fetchall()
     
     cursor.close()
