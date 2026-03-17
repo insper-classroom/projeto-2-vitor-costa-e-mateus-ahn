@@ -126,4 +126,8 @@ def atualizar_imovel(id):
     if rows == 0:
         return jsonify({'error': 'Imóvel não encontrado'}), 404
 
-    return jsonify({'message': 'Imóvel atualizado com sucesso'}), 200
+    response = {
+        'message': 'Imóvel atualizado com sucesso',
+        '_links': criar_links_imovel(id)
+    }
+    return jsonify(response), 200

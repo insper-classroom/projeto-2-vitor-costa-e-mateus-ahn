@@ -210,7 +210,22 @@ def test_atualizar_imovel_ok(mock_conectar_banco, client):
     response = client.put('/imoveis/1', json=payload)
 
     assert response.status_code == 200
-    assert response.get_json() == {'message': 'Imóvel atualizado com sucesso'}
+    assert response.get_json() == {
+        'message': 'Imóvel atualizado com sucesso',
+        '_links': {
+            'self': {'href': '/imoveis/1', 'method': 'GET'},
+            'update': {'href': '/imoveis/1', 'method': 'PUT'},
+            'delete': {'href': '/imoveis/1', 'method': 'DELETE'}
+        }
+    }
+
+    mock_cursor.execute.assert_called_once_with(
+        'UPDATE imoveis SET logradouro = ?, tipo_logradouro = ?, bairro = ?, cidade = ?, cep = ?, tipo = ?, valor = ?, data_aquisicao = ? WHERE id = ?',
+        (payload['logradouro'], payload['tipo_logradouro'], payload['bairro'], payload['cidade'], payload['cep'], payload['tipo'], payload['valor'], payload['data_aquisicao'], 1)
+    )
+    mock_conn.commit.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
 
 
 @patch('api.conectar_banco')
@@ -229,6 +244,14 @@ def test_atualizar_imovel_not_found(mock_conectar_banco, client):
     assert response.status_code == 404
     assert response.get_json() == {'error': 'Imóvel não encontrado'}
 
+    mock_cursor.execute.assert_called_once_with(
+        'UPDATE imoveis SET logradouro = ?, tipo_logradouro = ?, bairro = ?, cidade = ?, cep = ?, tipo = ?, valor = ?, data_aquisicao = ? WHERE id = ?',
+        (payload['logradouro'], payload['tipo_logradouro'], payload['bairro'], payload['cidade'], payload['cep'], payload['tipo'], payload['valor'], payload['data_aquisicao'], 1)
+    )
+    mock_conn.commit.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
+
 
 @patch('api.conectar_banco')
 def test_atualizar_imovel_erro_validacao(mock_conectar_banco, client):
@@ -236,3 +259,5 @@ def test_atualizar_imovel_erro_validacao(mock_conectar_banco, client):
 
     assert response.status_code == 400
     assert response.get_json() == {'error': 'Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao'}
+
+    mock_conectar_banco.assert_not_called()
