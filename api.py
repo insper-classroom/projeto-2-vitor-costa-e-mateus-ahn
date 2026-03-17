@@ -67,3 +67,26 @@ def obter_imovel(id):
         return jsonify(imovel), 200
     else:
         return jsonify({'error': 'Imóvel não encontrado'}), 404
+    
+@app.route('/imoveis', methods=['POST'])
+def criar_imovel():
+    data = request.get_json()
+    required_fields = ['logradouro', 'tipo_logradouro', 'bairro', 'cidade', 'cep', 'tipo', 'valor', 'data_aquisicao']
+    
+    if not all(field in data for field in required_fields):
+        return jsonify({'error': 'Campos obrigatórios: logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao'}), 400
+
+    conn = conectar_banco()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        'INSERT INTO imoveis (logradouro, tipo_logradouro, bairro, cidade, cep, tipo, valor, data_aquisicao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        (data['logradouro'], data['tipo_logradouro'], data['bairro'], data['cidade'], data['cep'], data['tipo'], data['valor'], data['data_aquisicao'])
+    )
+    conn.commit()
+    new_id = cursor.lastrowid
+    
+    cursor.close()
+    conn.close()
+
+    return jsonify({'id': new_id}), 201
