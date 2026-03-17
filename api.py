@@ -195,16 +195,15 @@ def listar_imoveis_por_cidade(cidade):
     cursor.close()
     conn.close()
 
-    data = [{
-        'id': row[0],
-        'logradouro': row[1],
-        'tipo_logradouro': row[2],
-        'bairro': row[3],
-        'cidade': row[4],
-        'cep': row[5],
-        'tipo': row[6],
-        'valor': row[7],
-        'data_aquisicao': row[8]
-    } for row in rows]
+    data = [criar_linha_imovel(row) for row in rows]
 
-    return jsonify(data), 200
+    response = {
+        '_embedded': {'imoveis': data},
+        '_links': {
+            'self': {'href': f'/imoveis/cidade/{cidade}', 'method': 'GET'},
+            'list': {'href': '/imoveis', 'method': 'GET'},
+            'create': {'href': '/imoveis', 'method': 'POST'}
+        }
+    }
+
+    return jsonify(response), 200
